@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>实用资源导航 · 收藏与删除</title>
+<style>
+:root{--bg:#f4eee5;--ink:#32251f;--muted:#7a6a5c;--line:#e7ded6;--brand:#8a4b2f;--brand-soft:#f3e7de;--gold:#d4a017;--gold-soft:#fdf6e3;--gold-line:#f0e0b8}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+header.top{padding:52px 0 26px}
+.eyebrow{font-size:12px;letter-spacing:2px;color:#a08468;margin:0 0 14px}
+h1{font-family:"Songti SC",Georgia,serif;font-size:32px;line-height:1.4;margin:0 0 12px;font-weight:600}
+.sub{color:var(--muted);font-size:15px;line-height:1.8;margin:0 0 24px;max-width:720px}
+.search-box{position:relative;max-width:420px}
+.search-box input{width:100%;padding:13px 16px 13px 42px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:15px;color:var(--ink);outline:none;transition:.2s;font-family:inherit}
+.search-box input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(138,75,47,.1)}
+.search-box svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#b3a293}
+.layout{max-width:1240px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:212px minmax(0,1fr);gap:36px}
+.sidebar{position:sticky;top:20px;align-self:start;max-height:calc(100vh - 40px);overflow-y:auto;padding:4px 0 24px;scrollbar-width:thin}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:#dccfc2;border-radius:4px}
+.side-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 12px 14px}
+.side-title{font-size:11px;letter-spacing:1.8px;color:#a08468;margin:0 0 10px 8px}
+.side-nav{display:flex;flex-direction:column;gap:2px}
+.side-nav a{display:flex;align-items:center;gap:8px;font-size:13.5px;color:#6b5a4c;text-decoration:none;padding:7px 10px;border-radius:8px;transition:background .15s,color .15s;line-height:1.4}
+.side-nav a::before{content:"";width:4px;height:4px;border-radius:50%;background:#d6c7b8;flex:0 0 auto;transition:background .15s}
+.side-nav a:hover{background:#faf4ee;color:var(--brand)}
+.side-nav a.active{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.side-nav a.active::before{background:var(--brand)}
+.side-nav a.dim{opacity:.35;pointer-events:none}
+.side-nav a.starred-link{display:none}
+body.has-starred .side-nav a.starred-link{display:flex;color:var(--gold)}
+body.has-starred .side-nav a.starred-link::before{background:var(--gold)}
+body.has-starred .side-nav a.starred-link.active{background:var(--gold-soft);color:#a07800}
+.side-foot{margin-top:12px;padding-top:12px;border-top:1px solid #f0e7de}
+.side-foot a{font-size:12.5px;color:#9a8878;text-decoration:none;display:block;padding:6px 10px;border-radius:8px}
+.side-foot a:hover{background:#faf4ee;color:var(--brand)}
+.cats{display:none}
+.content{min-width:0;padding-bottom:40px}
+.group{padding:34px 0 4px;scroll-margin-top:20px}
+.content>.group:first-of-type{padding-top:6px}
+.group.empty-group{display:none}
+.group h2{font-size:17px;margin:0 0 6px;display:flex;align-items:center;gap:9px;font-weight:700}
+.group h2::before{content:"";width:5px;height:16px;border-radius:3px;background:var(--brand)}
+.group .hint{color:#9a8878;font-size:13px;margin:0 0 18px;padding-left:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px}
+.card{position:relative;display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 17px 15px;text-decoration:none;color:inherit;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.card:hover{transform:translateY(-2px);border-color:#d8c4b3;box-shadow:0 6px 20px rgba(80,55,35,.08)}
+.card .row{display:flex;align-items:baseline;gap:10px;padding-right:56px}
+.card .name{font-size:15.5px;font-weight:700;letter-spacing:.2px}
+.card .url{font-size:11.5px;color:#b3a293;font-family:Georgia,serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card p{margin:0;font-size:13.5px;line-height:1.7;color:#6f6055}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:4px}
+.tag{font-size:11.5px;padding:3px 8px;border-radius:6px;background:#f6f0e9;color:#8a7663;line-height:1.5}
+.tag.g{background:#e9f3ec;color:#3d7355}
+.tag.b{background:#e9eef7;color:#40628f}
+.tag.o{background:#fdf0e6;color:#a35d2a}
+.tag.r{background:#fbe9e7;color:#a34a3f}
+.tag.p{background:#f0e9f6;color:#6b4a8f}
+
+/* 卡片操作按钮 */
+.card-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity .15s;z-index:2}
+.card:hover .card-actions,.card:focus-within .card-actions{opacity:1}
+.card-actions button{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:#fff;color:#b3a293;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .15s;font-family:inherit}
+.card-actions button:hover{background:#faf4ee;color:var(--brand);border-color:#d8c4b3}
+.act-star::before{content:"☆";font-size:14px}
+.act-del{font-size:15px!important}
+.card.is-starred .act-star{background:var(--gold-soft);border-color:var(--gold-line);color:var(--gold)}
+.card.is-starred .act-star::before{content:"★"}
+
+/* 已收藏区 */
+.starred-group{padding-top:6px}
+.starred-group h2{color:#8a6a1a}
+.starred-group h2::before{background:var(--gold)}
+.starred-group .hint{color:#b09a5a}
+.starred-group .card{border-color:var(--gold-line);background:#fffdf7}
+.starred-group .card:hover{border-color:#e8d4a0}
+.starred-group .card.is-starred .act-star{background:var(--gold);color:#fff;border-color:var(--gold)}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#32251f;color:#fff;padding:12px 18px;border-radius:10px;display:flex;align-items:center;gap:14px;font-size:14px;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:transform .25s ease,opacity .25s ease;opacity:0;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;pointer-events:auto}
+.toast button{background:none;border:none;color:#f5c978;font-size:14px;font-weight:600;cursor:pointer;padding:0;font-family:inherit}
+.toast button:hover{color:#ffd98a}
+
+footer{padding:40px 0 60px;color:#9a8878;font-size:13px;line-height:1.9;border-top:1px solid var(--line);margin-top:20px}
+.empty{display:none;padding:50px 0;text-align:center;color:#a3907e;font-size:15px}
+[hidden]{display:none!important}
+@media(max-width:900px){
+  header.top{padding:34px 0 18px}
+  h1{font-size:25px}
+  .sub{font-size:14px}
+  .layout{grid-template-columns:1fr;gap:0}
+  .sidebar{display:none}
+  .content{padding-bottom:20px}
+  .cats{display:flex;gap:8px;overflow-x:auto;position:sticky;top:0;z-index:20;background:rgba(244,238,229,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:0 -20px 4px;padding:12px 20px;scrollbar-width:none}
+  .cats::-webkit-scrollbar{display:none}
+  .cats a{flex:0 0 auto;font-size:13.5px;color:#6b5a4c;text-decoration:none;padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);white-space:nowrap}
+  .cats a:active{background:var(--brand-soft);color:var(--brand)}
+  .cats a.starred-link{display:none}
+  body.has-starred .cats a.starred-link{display:block;color:var(--gold);border-color:var(--gold-line);background:var(--gold-soft)}
+  .group{scroll-margin-top:62px;padding-top:28px}
+  .content>.group:first-of-type{padding-top:16px}
+  .grid{grid-template-columns:1fr}
+  .card-actions{opacity:1}
+  .card-actions button{width:30px;height:30px;font-size:16px}
+}
+@media(max-width:1000px) and (min-width:901px){
+  .layout{grid-template-columns:190px minmax(0,1fr);gap:24px}
+}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <p class="eyebrow">RESOURCE NAVIGATOR · 收藏与删除</p>
+  <h1>实用资源导航</h1>
+  <p class="sub">悬停卡片会看到右上角两个按钮：点 ☆ 收藏，卡片会出现在顶部「已收藏」区优先显示；点 × 删除，5 秒内可撤销。收藏和删除状态会保存在浏览器本地，刷新后依然保留。</p>
+  <div class="search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="搜站点或用途，如「字体」「英语」「DeepSeek」" autocomplete="off">
+  </div>
+</div></header>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="side-card">
+      <p class="side-title">分类目录</p>
+      <nav class="side-nav">
+        <a href="#starred" class="starred-link">★ 已收藏</a>
+        <a href="#design">设计做图</a>
+        <a href="#ai">AI 创作</a>
+        <a href="#image">图片图标</a>
+        <a href="#media">视频音频</a>
+        <a href="#language">语言学习</a>
+        <a href="#books">电子书阅读</a>
+        <a href="#video">影视动漫</a>
+        <a href="#news">新闻资讯</a>
+        <a href="#productivity">效率笔记</a>
+        <a href="#dev">开发者</a>
+        <a href="#nav">资源导航</a>
+        <a href="#life">生活旅行</a>
+        <a href="#workspace">工作区与云服务</a>
+        <a href="#personal">个人与后台</a>
+        <a href="#inspiration">灵感参考</a>
+      </nav>
+      <div class="side-foot">
+        <a href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">↑ 回到顶部</a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <nav class="cats">
+      <a href="#starred" class="starred-link">★ 已收藏</a>
+      <a href="#design">设计做图</a>
+      <a href="#ai">AI 创作</a>
+      <a href="#image">图片图标</a>
+      <a href="#media">视频音频</a>
+      <a href="#language">语言学习</a>
+      <a href="#books">电子书阅读</a>
+      <a href="#video">影视动漫</a>
+      <a href="#news">新闻资讯</a>
+      <a href="#productivity">效率笔记</a>
+      <a href="#dev">开发者</a>
+      <a href="#nav">资源导航</a>
+      <a href="#life">生活旅行</a>
+      <a href="#workspace">工作区与云服务</a>
+      <a href="#personal">个人与后台</a>
+      <a href="#inspiration">灵感参考</a>
+    </nav>
+
+    <section class="group starred-group" id="starred" hidden>
+      <h2>★ 已收藏</h2>
+      <p class="hint">星标过的站点集中在这里，点 ☆ 可取消收藏</p>
+      <div class="grid" id="starred-grid"></div>
+    </section>
+
+    <section class="group" id="design">
+      <h2>设计做图</h2>
+      <p class="hint">在线出图、字体、UI 组件，打开就能用</p>
+      <div class="grid">
+        <a class="card" href="https://www.canva.cn" target="_blank" rel="noopener noreferrer" data-search="canva 可画 在线设计 海报 ppt 封面 模板 中文"><div class="row"><span class="name">Canva 可画</span><span class="url">canva.cn</span></div><p>模板最多、上手最快的在线设计平台，海报、PPT、封面拖拽就能搞定。</p><div class="tags"><span class="tag">在线做图</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://js.design" target="_blank" rel="noopener noreferrer" data-search="即时设计 在线协作 ui 模板 psd 中文"><div class="row"><span class="name">即时设计</span><span class="url">js.design</span></div><p>国内在线协作设计工具，小红书封面、UI 模板齐全，支持 PSD 在线编辑。</p><div class="tags"><span class="tag">在线做图</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://pixelied.com" target="_blank" rel="noopener noreferrer" data-search="pixelied 在线 图形设计 模板 图标 插图"><div class="row"><span class="name">Pixelied</span><span class="url">pixelied.com</span></div><p>轻量在线图形设计套件，模板、库存图、图标一站配齐。</p><div class="tags"><span class="tag">在线做图</span></div></a>
+        <a class="card" href="https://www.gslides.com" target="_blank" rel="noopener noreferrer" data-search="gslides google slides 模板 演示文稿 ppt"><div class="row"><span class="name">Gslides</span><span class="url">gslides.com</span></div><p>免费的 Google Slides 和 Docs 模板站，演示文稿直接套主题。</p><div class="tags"><span class="tag">模板</span></div></a>
+        <a class="card" href="https://www.100font.com" target="_blank" rel="noopener noreferrer" data-search="100font 免费商用字体 中文字体 下载"><div class="row"><span class="name">100font</span><span class="url">100font.com</span></div><p>专门收录免费商用字体，每款都标注授权情况。</p><div class="tags"><span class="tag g">免费商用</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.fonts.net.cn" target="_blank" rel="noopener noreferrer" data-search="字体天下 在线预览 字体 下载 中文"><div class="row"><span class="name">字体天下</span><span class="url">fonts.net.cn</span></div><p>收录字体上万款，输入文字在线预览效果再下载。</p><div class="tags"><span class="tag b">中文界面</span><span class="tag">在线预览</span></div></a>
+        <a class="card" href="https://fonts.google.com" target="_blank" rel="noopener noreferrer" data-search="google fonts 免费 开源 英文字体 网页字体"><div class="row"><span class="name">Google Fonts</span><span class="url">fonts.google.com</span></div><p>完全免费开源的字体库，西文字体质量极高，可直接引用到网页。</p><div class="tags"><span class="tag g">免费开源</span></div></a>
+        <a class="card" href="https://github.com/adobe-fonts/source-han-sans" target="_blank" rel="noopener noreferrer" data-search="思源黑体 思源宋体 免费 开源 中文字体"><div class="row"><span class="name">思源黑体 / 宋体</span><span class="url">github.com/adobe-fonts</span></div><p>Adobe 与 Google 联合开发，简繁日韩全覆盖，免费商用。</p><div class="tags"><span class="tag g">免费商用</span></div></a>
+        <a class="card" href="https://www.iconfont.cn/fonts" target="_blank" rel="noopener noreferrer" data-search="阿里巴巴普惠体 免费商用 品牌 字体"><div class="row"><span class="name">阿里巴巴普惠体</span><span class="url">iconfont.cn/fonts</span></div><p>阿里官方出品，多字重、专为商业场景设计。</p><div class="tags"><span class="tag g">免费商用</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.hellofont.cn" target="_blank" rel="noopener noreferrer" data-search="字由 客户端 字体管理 免费商用"><div class="row"><span class="name">字由</span><span class="url">hellofont.cn</span></div><p>客户端管理字体，内置大量免费商用字体，设计软件里直接调用。</p><div class="tags"><span class="tag">客户端</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://pixso.cn" target="_blank" rel="noopener noreferrer" data-search="pixso 资源社区 ui 组件库 设计系统 模板"><div class="row"><span class="name">Pixso 资源社区</span><span class="url">pixso.cn</span></div><p>内置阿里、字节、腾讯等设计系统，3000+ UI 组件库一键复用。</p><div class="tags"><span class="tag">UI 组件</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.figma.com/community" target="_blank" rel="noopener noreferrer" data-search="figma community ui kit 组件库 模板 设计系统"><div class="row"><span class="name">Figma Community</span><span class="url">figma.com/community</span></div><p>官方社区，免费 UI Kit、组件库和模板的集中地。</p><div class="tags"><span class="tag">UI 组件</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://www.uplabs.com" target="_blank" rel="noopener noreferrer" data-search="uplabs ui ux 图标 套件 样机 模板"><div class="row"><span class="name">Uplabs</span><span class="url">uplabs.com</span></div><p>专注 UI/UX 的资源分享站，图标、UI 套件、样机模板都能淘到。</p><div class="tags"><span class="tag">UI 组件</span></div></a>
+        <a class="card" href="https://uiverse.io" target="_blank" rel="noopener noreferrer" data-search="uiverse 开源 ui 元素 css 按钮 组件"><div class="row"><span class="name">Uiverse</span><span class="url">uiverse.io</span></div><p>最大的开源 UI 元素库，CSS 按钮、卡片、加载动画直接复制代码。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag">UI 组件</span></div></a>
+        <a class="card" href="https://cursify.vercel.app" target="_blank" rel="noopener noreferrer" data-search="cursify ui 组件 动画 开源 horizontal bars"><div class="row"><span class="name">Cursify</span><span class="url">cursify.vercel.app</span></div><p>开源 UI 组件库，Horizontal Bars 这类动画组件可直接复制使用。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag">UI 组件</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="ai">
+      <h2>AI 创作</h2>
+      <p class="hint">对话、绘图、视频、PPT、翻译、声音、Agent</p>
+      <div class="grid">
+        <a class="card" href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" data-search="chatgpt openai 对话 ai 写作"><div class="row"><span class="name">ChatGPT</span><span class="url">chatgpt.com</span></div><p>最常用的 AI 对话工具，写作、翻译、头脑风暴都能用。</p><div class="tags"><span class="tag o">AI 对话</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://chat.deepseek.com" target="_blank" rel="noopener noreferrer" data-search="deepseek 聊天 对话 ai 中文 推理"><div class="row"><span class="name">DeepSeek 聊天</span><span class="url">chat.deepseek.com</span></div><p>DeepSeek 的网页对话入口，中文理解和推理能力不错。</p><div class="tags"><span class="tag o">AI 对话</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://platform.deepseek.com/usage" target="_blank" rel="noopener noreferrer" data-search="deepseek 开放平台 api 用量 开发者 充值"><div class="row"><span class="name">DeepSeek 开放平台</span><span class="url">platform.deepseek.com</span></div><p>DeepSeek 的 API 控制台，查用量、管理密钥和充值时从这里进。</p><div class="tags"><span class="tag o">API 平台</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer" data-search="claude anthropic 对话 ai 写作 长文本"><div class="row"><span class="name">Claude</span><span class="url">claude.ai</span></div><p>Anthropic 的 AI 对话工具，长文本处理和写作辅助口碑很好。</p><div class="tags"><span class="tag o">AI 对话</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://skywork.ai" target="_blank" rel="noopener noreferrer" data-search="skywork ai agent 超级智能体 深度研究 工作流"><div class="row"><span class="name">Skywork</span><span class="url">skywork.ai</span></div><p>由深度研究驱动的一体化超级智能体，把搜索、分析、生成串成一条工作流。</p><div class="tags"><span class="tag o">AI Agent</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://proactor.ai" target="_blank" rel="noopener noreferrer" data-search="proactor ai 对话 工作流 助手"><div class="row"><span class="name">Proactor</span><span class="url">proactor.ai</span></div><p>AI 对话与工作流工具，面向任务型场景，适合把多步操作交给它跑。</p><div class="tags"><span class="tag o">AI Agent</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://app.pavo-ai.work" target="_blank" rel="noopener noreferrer" data-search="pavo ai 助手 对话 工作区"><div class="row"><span class="name">Pavo</span><span class="url">app.pavo-ai.work</span></div><p>AI 助手工作区，按对话组织任务，适合把零散需求集中处理。</p><div class="tags"><span class="tag o">AI Agent</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://millionengine.com/register" target="_blank" rel="noopener noreferrer" data-search="万量引擎 millionengine api 注册 模型"><div class="row"><span class="name">万量引擎</span><span class="url">millionengine.com</span></div><p>AI 模型 API 服务注册入口，面向开发者接入模型能力。</p><div class="tags"><span class="tag o">API 平台</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://playground.bfl.ai/image/generate" target="_blank" rel="noopener noreferrer" data-search="flux playground black forest labs ai 绘图 文生图"><div class="row"><span class="name">FLUX Playground</span><span class="url">playground.bfl.ai</span></div><p>Black Forest Labs 官方 FLUX 图像生成测试场。</p><div class="tags"><span class="tag o">AI 绘图</span><span class="tag">免费额度</span></div></a>
+        <a class="card" href="https://arthub.ai" target="_blank" rel="noopener noreferrer" data-search="arthub ai 绘画 社区 提示词 生成"><div class="row"><span class="name">Arthub</span><span class="url">arthub.ai</span></div><p>AI 绘画作品分享与生成社区，可浏览别人的提示词和参数。</p><div class="tags"><span class="tag o">AI 绘图</span><span class="tag">社区</span></div></a>
+        <a class="card" href="https://cloud.comfy.org" target="_blank" rel="noopener noreferrer" data-search="comfyui 节点 工作流 ai 绘图 云端"><div class="row"><span class="name">ComfyUI</span><span class="url">cloud.comfy.org</span></div><p>节点式 AI 图像生成工作流工具，云端版不用装环境。</p><div class="tags"><span class="tag o">AI 绘图</span><span class="tag">工作流</span></div></a>
+        <a class="card" href="https://www.mindvideo.ai" target="_blank" rel="noopener noreferrer" data-search="mindvideo ai 图片 生成 文生图 中文"><div class="row"><span class="name">MindVideo</span><span class="url">mindvideo.ai</span></div><p>免费 AI 图片生成器，支持文字转图片，出图速度不错。</p><div class="tags"><span class="tag o">AI 绘图</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.easemate.ai" target="_blank" rel="noopener noreferrer" data-search="easemate ai 图像 生成 文生图 免费"><div class="row"><span class="name">EaseMate AI</span><span class="url">easemate.ai</span></div><p>免费在线 AI 图像生成器，文字或图片都能作为输入。</p><div class="tags"><span class="tag o">AI 绘图</span></div></a>
+        <a class="card" href="https://app.pixverse.ai" target="_blank" rel="noopener noreferrer" data-search="pixverse ai 视频 文生视频 图生视频"><div class="row"><span class="name">PixVerse</span><span class="url">app.pixverse.ai</span></div><p>用文字或图片生成短视频的 AI 工具。</p><div class="tags"><span class="tag o">AI 视频</span></div></a>
+        <a class="card" href="https://listenhub.ai" target="_blank" rel="noopener noreferrer" data-search="listenhub ai 视频 播客 ppt 解说"><div class="row"><span class="name">ListenHub</span><span class="url">listenhub.ai</span></div><p>把文字一键生成视频、播客或 PPT，做内容解说很省事。</p><div class="tags"><span class="tag o">AI 视频</span><span class="tag o">AI PPT</span></div></a>
+        <a class="card" href="https://gamma.app" target="_blank" rel="noopener noreferrer" data-search="gamma ai 演示文稿 ppt 网页 生成"><div class="row"><span class="name">Gamma</span><span class="url">gamma.app</span></div><p>AI 驱动的演示文稿和网页生成器，输入大纲就能排出成品。</p><div class="tags"><span class="tag o">AI PPT</span></div></a>
+        <a class="card" href="https://codia.ai" target="_blank" rel="noopener noreferrer" data-search="codia ai 笔记 幻灯片 演示 生成"><div class="row"><span class="name">Codia AI</span><span class="url">codia.ai</span></div><p>AI 笔记与幻灯片生成工具，输入主题产出结构化演示内容。</p><div class="tags"><span class="tag o">AI PPT</span></div></a>
+        <a class="card" href="https://chartgen.ai" target="_blank" rel="noopener noreferrer" data-search="chartgen ai 图表 数据可视化 生成"><div class="row"><span class="name">ChartGen AI</span><span class="url">chartgen.ai</span></div><p>用自然语言生成图表，报告配图时比手动调参快很多。</p><div class="tags"><span class="tag o">AI 图表</span></div></a>
+        <a class="card" href="https://www.hkshot.com" target="_blank" rel="noopener noreferrer" data-search="霍客引擎 hkshot ai 电商 主图 亚马逊 淘宝"><div class="row"><span class="name">霍客引擎</span><span class="url">hkshot.com</span></div><p>AI 生成电商主图，面向亚马逊、淘宝等平台。</p><div class="tags"><span class="tag o">AI 电商图</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://github.com/NEKOparapa/AiNiee" target="_blank" rel="noopener noreferrer" data-search="ainiee ai 翻译 游戏 小说 字幕 epub"><div class="row"><span class="name">AiNiee</span><span class="url">github.com/NEKOparapa</span></div><p>AI 翻译工具，一键翻译游戏、小说、字幕等复杂长文本。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag o">AI 翻译</span></div></a>
+        <a class="card" href="https://github.com/Huanshere/VideoLingo" target="_blank" rel="noopener noreferrer" data-search="videolingo 字幕 切割 翻译 对齐 配音"><div class="row"><span class="name">VideoLingo</span><span class="url">github.com/Huanshere</span></div><p>一键全自动视频字幕切割、翻译、对齐，甚至加上配音。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag o">AI 字幕</span></div></a>
+        <a class="card" href="https://easyvoice.ioplus.tech" target="_blank" rel="noopener noreferrer" data-search="easyvoice 小说 转文字 配音 语音"><div class="row"><span class="name">EasyVoice</span><span class="url">easyvoice.ioplus.tech</span></div><p>把小说文本转成语音，做有声书或朗读素材时可以用。</p><div class="tags"><span class="tag o">AI 语音</span></div></a>
+        <a class="card" href="https://www.voicemod.net/zh/" target="_blank" rel="noopener noreferrer" data-search="voicemod 变声器 音效 实时 语音"><div class="row"><span class="name">Voicemod</span><span class="url">voicemod.net</span></div><p>实时变声器和音效控制台，做语音内容或娱乐直播时用得上。</p><div class="tags"><span class="tag">变声器</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://tts.wangwangit.com" target="_blank" rel="noopener noreferrer" data-search="voicecraft ai 语音 tts 文本转语音"><div class="row"><span class="name">VoiceCraft</span><span class="url">tts.wangwangit.com</span></div><p>AI 驱动的语音处理平台，文本转语音效果自然。</p><div class="tags"><span class="tag o">AI 语音</span></div></a>
+        <a class="card" href="https://t.leftsite.cn" target="_blank" rel="noopener noreferrer" data-search="文本转语音 tts 服务 在线"><div class="row"><span class="name">文本转语音 TTS</span><span class="url">t.leftsite.cn</span></div><p>在线文本转语音服务，做配音或朗读素材时可以直接用。</p><div class="tags"><span class="tag">TTS</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://aiclonevoicefree.com" target="_blank" rel="noopener noreferrer" data-search="声音克隆 ai 免费 voice clone"><div class="row"><span class="name">免费声音克隆</span><span class="url">aiclonevoicefree.com</span></div><p>免费的声音克隆工具，上传样本就能生成相似音色。</p><div class="tags"><span class="tag o">AI 语音</span><span class="tag">免注册</span></div></a>
+        <a class="card" href="https://www.voicss.com" target="_blank" rel="noopener noreferrer" data-search="voicss ai 人声分离 伴奏 卡拉 ok"><div class="row"><span class="name">Voicss</span><span class="url">voicss.com</span></div><p>AI 人声分离，把歌曲里的人声和伴奏拆开。</p><div class="tags"><span class="tag o">AI 音频</span></div></a>
+        <a class="card" href="https://text-to-handwriting.org/zh/handwriting" target="_blank" rel="noopener noreferrer" data-search="文字转手写 手写体 图片 中文"><div class="row"><span class="name">文字转手写</span><span class="url">text-to-handwriting.org</span></div><p>把输入的文字转成手写体图片，做手账风配图。</p><div class="tags"><span class="tag">文字转手写</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.autohanding.com" target="_blank" rel="noopener noreferrer" data-search="凹凸工坊 手写模拟器 字帖 生成"><div class="row"><span class="name">凹凸工坊</span><span class="url">autohanding.com</span></div><p>手写模拟器，一键生成手写文稿，还能在线做手写字体。</p><div class="tags"><span class="tag">手写生成</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://characterheadcanongen.com/zh" target="_blank" rel="noopener noreferrer" data-search="ai 角色 脑洞 生成 小说 漫画 游戏 设定"><div class="row"><span class="name">AI 角色脑洞生成器</span><span class="url">characterheadcanongen.com</span></div><p>一键生成角色设定和背景故事，写小说、漫画或游戏设定时找灵感。</p><div class="tags"><span class="tag o">AI 写作</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://agnes-ai.com/zh-Hans/docs/quickstart" target="_blank" rel="noopener noreferrer" data-search="agnes ai 文档 快速开始 开发 集成"><div class="row"><span class="name">Agnes AI 文档</span><span class="url">agnes-ai.com</span></div><p>Agnes AI 的开发文档，快速开始和集成指南都在这里。</p><div class="tags"><span class="tag">文档</span><span class="tag b">中文界面</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="image">
+      <h2>图片图标</h2>
+      <p class="hint">免费可商用的图库，加上风格统一的图标、插画和以图搜图</p>
+      <div class="grid">
+        <a class="card" href="https://pixabay.com/zh/" target="_blank" rel="noopener noreferrer" data-search="pixabay 图片 视频 音效 免费 商用 中文搜索"><div class="row"><span class="name">Pixabay</span><span class="url">pixabay.com</span></div><p>500 万+ 免费图片、插画和视频，中英文都能搜，免注册直接下载。</p><div class="tags"><span class="tag g">免费商用</span><span class="tag">支持中文</span></div></a>
+        <a class="card" href="https://unsplash.com" target="_blank" rel="noopener noreferrer" data-search="unsplash 摄影 高质量 图片 背景图"><div class="row"><span class="name">Unsplash</span><span class="url">unsplash.com</span></div><p>高质量摄影作品，风格自然真实，做博客封面很出片。</p><div class="tags"><span class="tag g">免费商用</span></div></a>
+        <a class="card" href="https://www.pexels.com/zh-cn/" target="_blank" rel="noopener noreferrer" data-search="pexels 图片 视频 免费 商用 中文"><div class="row"><span class="name">Pexels</span><span class="url">pexels.com</span></div><p>图片和视频都能找，搜索体验好，通用主题很全。</p><div class="tags"><span class="tag g">免费商用</span><span class="tag">含视频</span></div></a>
+        <a class="card" href="https://www.polayoutu.com" target="_blank" rel="noopener noreferrer" data-search="泼辣有图 国内 免费 无版权 cc0 中文"><div class="row"><span class="name">泼辣有图</span><span class="url">polayoutu.com</span></div><p>国内 CC0 图库，中文界面、访问速度快。</p><div class="tags"><span class="tag g">免费商用</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.flaticon.com" target="_blank" rel="noopener noreferrer" data-search="flaticon 图标 矢量 svg png 线性 扁平 3d"><div class="row"><span class="name">Flaticon</span><span class="url">flaticon.com</span></div><p>50 万+ 矢量图标，线性、扁平、3D 风格都有。</p><div class="tags"><span class="tag">矢量图标</span><span class="tag">需登录</span></div></a>
+        <a class="card" href="https://undraw.co" target="_blank" rel="noopener noreferrer" data-search="undraw 开源 插画 免费 svg 改色"><div class="row"><span class="name">unDraw</span><span class="url">undraw.co</span></div><p>风格统一的开源插画库，能在线改主色再下载。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag">插画</span></div></a>
+        <a class="card" href="https://www.iconfont.cn" target="_blank" rel="noopener noreferrer" data-search="iconfont 阿里巴巴 矢量 图标库 中文 字体图标"><div class="row"><span class="name">iconfont</span><span class="url">iconfont.cn</span></div><p>阿里矢量图标库，国内项目找图标首选。</p><div class="tags"><span class="tag">矢量图标</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.ai-suguan.com" target="_blank" rel="noopener noreferrer" data-search="3d icon gallery 3d图标 免费 下载"><div class="row"><span class="name">3D Icon Gallery</span><span class="url">ai-suguan.com</span></div><p>免费 3D 图标下载站，风格统一，适合现代感界面。</p><div class="tags"><span class="tag g">免费</span><span class="tag">3D 图标</span></div></a>
+        <a class="card" href="https://storyset.com" target="_blank" rel="noopener noreferrer" data-search="storyset 免费 插画 可改色 人物 场景"><div class="row"><span class="name">Storyset</span><span class="url">storyset.com</span></div><p>免费插画库，人物和场景插画都能在线改色再下载。</p><div class="tags"><span class="tag g">免费插画</span></div></a>
+        <a class="card" href="https://github.com/helloianneo/ian-xiaohei-illustrations" target="_blank" rel="noopener noreferrer" data-search="小黑 怪诞 配图 手绘 开源 ai 公众号 博客"><div class="row"><span class="name">小黑怪诞配图</span><span class="url">github.com/helloianneo</span></div><p>中文手绘风格正文配图生成 Skill，白底手绘加少量批注。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag o">AI 配图</span></div></a>
+        <a class="card" href="https://saucenao.com" target="_blank" rel="noopener noreferrer" data-search="saucenao 以图搜图 找原图 插画 动漫 出处"><div class="row"><span class="name">SauceNAO</span><span class="url">saucenao.com</span></div><p>以图搜图工具，尤其擅长找动漫、插画的原图和出处。</p><div class="tags"><span class="tag">以图搜图</span><span class="tag">找参考</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="media">
+      <h2>视频音频</h2>
+      <p class="hint">4K 空镜、动态背景、音效、无损音乐、视频平台</p>
+      <div class="grid">
+        <a class="card" href="https://mixkit.co" target="_blank" rel="noopener noreferrer" data-search="mixkit 视频 4k 8k 动态图形 背景音乐 免费"><div class="row"><span class="name">Mixkit</span><span class="url">mixkit.co</span></div><p>4K/8K 高清视频和动态图形，还附赠背景音乐。</p><div class="tags"><span class="tag g">免费商用</span><span class="tag">视频</span></div></a>
+        <a class="card" href="https://coverr.co" target="_blank" rel="noopener noreferrer" data-search="coverr 电影感 视频 免注册 免费"><div class="row"><span class="name">Coverr</span><span class="url">coverr.co</span></div><p>电影感镜头为主，不用注册直接下载。</p><div class="tags"><span class="tag g">免费商用</span><span class="tag">免注册</span></div></a>
+        <a class="card" href="https://www.videvo.net" target="_blank" rel="noopener noreferrer" data-search="videvo 视频 动画 抽象 4k 素材"><div class="row"><span class="name">Videvo</span><span class="url">videvo.net</span></div><p>自然、动画、抽象类素材很丰富，支持 4K 下载。</p><div class="tags"><span class="tag">视频</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://www.lifeofvids.com" target="_blank" rel="noopener noreferrer" data-search="life of vids cc0 生活 视频 免费 商用"><div class="row"><span class="name">Life of Vids</span><span class="url">lifeofvids.com</span></div><p>创意机构运营的生活化素材库，CC0 授权。</p><div class="tags"><span class="tag g">免费商用</span><span class="tag">免注册</span></div></a>
+        <a class="card" href="https://m.huiyi8.com" target="_blank" rel="noopener noreferrer" data-search="音效 网站 huiyi8 转场 氛围 拟音 免费"><div class="row"><span class="name">音效网站</span><span class="url">huiyi8.com</span></div><p>音效素材站，转场、氛围、拟音都有。</p><div class="tags"><span class="tag">音效</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.isflac.com" target="_blank" rel="noopener noreferrer" data-search="无损音乐 flac mp3 下载 免费"><div class="row"><span class="name">无损音乐</span><span class="url">isflac.com</span></div><p>无损音乐和 MP3 歌曲下载站，做视频配乐时找素材方便。</p><div class="tags"><span class="tag">音乐</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://publiciptv.com/channels/redapple21us" target="_blank" rel="noopener noreferrer" data-search="公共电台 public iptv 直播 频道"><div class="row"><span class="name">公共电台</span><span class="url">publiciptv.com</span></div><p>公开的 IPTV 频道列表，可以在线看一些公共电视频道。</p><div class="tags"><span class="tag">直播</span><span class="tag">电台</span></div></a>
+        <a class="card" href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" data-search="youtube 视频 平台 泰语 狗 才艺 dj"><div class="row"><span class="name">YouTube</span><span class="url">youtube.com</span></div><p>国际视频平台，书签里收藏了泰语、狗狗才艺、音乐等频道。</p><div class="tags"><span class="tag">视频平台</span></div></a>
+        <a class="card" href="https://x-twitter-downloader.com/zh-CN" target="_blank" rel="noopener noreferrer" data-search="x twitter 下载器 视频 无水印 免费"><div class="row"><span class="name">X 下载器</span><span class="url">x-twitter-downloader.com</span></div><p>免费下载 X（Twitter）视频，支持高清无水印。</p><div class="tags"><span class="tag">视频下载</span></div></a>
+        <a class="card" href="https://tupian.32cd.com" target="_blank" rel="noopener noreferrer" data-search="视频去水印 字幕 logo 在线 处理"><div class="row"><span class="name">视频去水印</span><span class="url">tupian.32cd.com</span></div><p>在线去除视频水印、字幕和 logo。</p><div class="tags"><span class="tag">视频处理</span><span class="tag b">中文界面</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="language">
+      <h2>语言学习</h2>
+      <p class="hint">英语为主，加上泰语、词典、词源和课程平台</p>
+      <div class="grid">
+        <a class="card" href="https://www.taicishe.com" target="_blank" rel="noopener noreferrer" data-search="英语台词社 电影 美剧 台词 完整 剧本"><div class="row"><span class="name">英语台词社</span><span class="url">taicishe.com</span></div><p>54000 部电影、110000 集美剧的完整台词。</p><div class="tags"><span class="tag">台词</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://engoo.com.tw/blog/英文口說技巧/英文口說/english-colloquial-phrases/" target="_blank" rel="noopener noreferrer" data-search="engoo 英文 惯用语 口语 俚语"><div class="row"><span class="name">Engoo 惯用语</span><span class="url">engoo.com.tw</span></div><p>整理老外常用的英文惯用语，配例句。</p><div class="tags"><span class="tag">口语</span></div></a>
+        <a class="card" href="https://nativecamp.net/zh-tw/blog/4492/" target="_blank" rel="noopener noreferrer" data-search="nativecamp 英式 俚语 例句 日常会话"><div class="row"><span class="name">NativeCamp</span><span class="url">nativecamp.net</span></div><p>英式英语俚语合集，用解释和例句介绍常见说法。</p><div class="tags"><span class="tag">俚语</span></div></a>
+        <a class="card" href="https://www.berlitz.com/zh-hans-cn/blog/british-slang-lingo-words-meanings" target="_blank" rel="noopener noreferrer" data-search="berlitz 英国 俚语 100 常见 词汇"><div class="row"><span class="name">Berlitz 英国俚语</span><span class="url">berlitz.com</span></div><p>100+ 个英国俚语词汇和表达，按场景整理。</p><div class="tags"><span class="tag">俚语</span></div></a>
+        <a class="card" href="https://www.bbc.co.uk/learningenglish" target="_blank" rel="noopener noreferrer" data-search="bbc learning english 英语 学习 课程 视频 发音 一分钟"><div class="row"><span class="name">BBC Learning English</span><span class="url">bbc.co.uk/learningenglish</span></div><p>BBC 官方英语学习平台，含一分钟英语、语音教程等栏目。</p><div class="tags"><span class="tag">综合</span></div></a>
+        <a class="card" href="https://www.hopenglish.com/hope-tips-american-slang-extra-cringey-basic" target="_blank" rel="noopener noreferrer" data-search="hopenglish 俚语 cap goat flex wack slay 放下"><div class="row"><span class="name">HopEnglish</span><span class="url">hopenglish.com</span></div><p>2020 必学俚语 TOP 5，另有「放下」等生活英文表达。</p><div class="tags"><span class="tag">俚语</span></div></a>
+        <a class="card" href="https://learningenglish.voanews.com/a/8005242.html" target="_blank" rel="noopener noreferrer" data-search="voa 发音 练习 夸张 活动"><div class="row"><span class="name">VOA 发音练习</span><span class="url">voanews.com</span></div><p>VOA 的发音趣味练习，用夸张活动练口型和语调。</p><div class="tags"><span class="tag">发音</span></div></a>
+        <a class="card" href="https://learnenglish.britishcouncil.org" target="_blank" rel="noopener noreferrer" data-search="british council 英语 学习 在线 课程"><div class="row"><span class="name">British Council</span><span class="url">britishcouncil.org</span></div><p>英国文化协会的英语学习站，课程和练习覆盖各水平。</p><div class="tags"><span class="tag">综合</span></div></a>
+        <a class="card" href="https://learnenglishkids.britishcouncil.org" target="_blank" rel="noopener noreferrer" data-search="learnenglish kids 儿童 英语 游戏 歌曲 故事"><div class="row"><span class="name">LearnEnglish Kids</span><span class="url">britishcouncil.org</span></div><p>面向儿童的英语学习站，游戏、歌曲、故事都有。</p><div class="tags"><span class="tag">儿童</span></div></a>
+        <a class="card" href="https://www.eslcafe.com/resources/slangs/" target="_blank" rel="noopener noreferrer" data-search="esl cafe 俚语 英语 学习"><div class="row"><span class="name">ESL 俚语</span><span class="url">eslcafe.com</span></div><p>老牌 ESL 资源站的俚语板块，按字母和主题整理。</p><div class="tags"><span class="tag">俚语</span></div></a>
+        <a class="card" href="https://www.mypitaya.com/100828.html" target="_blank" rel="noopener noreferrer" data-search="火龙果 习语 under the weather 英语"><div class="row"><span class="name">火龙果习语站</span><span class="url">mypitaya.com</span></div><p>用中文讲英语习语，Under the Weather 这类表达拆得比较细。</p><div class="tags"><span class="tag">习语</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://youglish.com" target="_blank" rel="noopener noreferrer" data-search="youglish 发音 母语 视频 例句"><div class="row"><span class="name">Youglish</span><span class="url">youglish.com</span></div><p>用真实视频例句查单词发音。</p><div class="tags"><span class="tag">发音</span></div></a>
+        <a class="card" href="https://www.youzack.com" target="_blank" rel="noopener noreferrer" data-search="精听 新概念 英语 听力 逐句"><div class="row"><span class="name">精听 Youzack</span><span class="url">youzack.com</span></div><p>新概念英语逐句精听，适合练听力细节和跟读。</p><div class="tags"><span class="tag">听力</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://qwerty.kaiyi.cool" target="_blank" rel="noopener noreferrer" data-search="qwerty learner 单词 肌肉记忆 键盘 打字"><div class="row"><span class="name">Qwerty Learner</span><span class="url">qwerty.kaiyi.cool</span></div><p>为键盘工作者设计的单词与肌肉记忆锻炼软件。</p><div class="tags"><span class="tag">背单词</span><span class="tag g">免费开源</span></div></a>
+        <a class="card" href="https://letmeenglish.com" target="_blank" rel="noopener noreferrer" data-search="letmeenglish 免费 英文 学习 网站"><div class="row"><span class="name">LetMeEnglish</span><span class="url">letmeenglish.com</span></div><p>免费英文学习网站，语法、词汇、会话内容都有覆盖。</p><div class="tags"><span class="tag">综合</span></div></a>
+        <a class="card" href="https://www.runtoenglish.com" target="_blank" rel="noopener noreferrer" data-search="极速英语 新概念 四六级 考研 雅思 托福"><div class="row"><span class="name">极速英语</span><span class="url">runtoenglish.com</span></div><p>新概念英语在线学习，四六级、考研、雅思托福资料也有。</p><div class="tags"><span class="tag">综合</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://nce.luzhenhua.cn" target="_blank" rel="noopener noreferrer" data-search="nce flow 新概念 英语 点读"><div class="row"><span class="name">NCE Flow</span><span class="url">nce.luzhenhua.cn</span></div><p>新概念英语在线点读，课文和音频对应着看。</p><div class="tags"><span class="tag">新概念</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://nce.ichochy.com" target="_blank" rel="noopener noreferrer" data-search="新概念 英语 nce 听力 播放器"><div class="row"><span class="name">NCE 听力播放器</span><span class="url">nce.ichochy.com</span></div><p>新概念英语听力播放器，界面干净，适合反复听课文。</p><div class="tags"><span class="tag">听力</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.thaipod101.com" target="_blank" rel="noopener noreferrer" data-search="thai pod 101 泰语 学习 课程"><div class="row"><span class="name">ThaiPod101</span><span class="url">thaipod101.com</span></div><p>泰语学习平台，从零基础问候到进阶课程都有。</p><div class="tags"><span class="tag">泰语</span></div></a>
+        <a class="card" href="https://www.bilibili.com" target="_blank" rel="noopener noreferrer" data-search="bilibili 泰语 每日学习 英语 课程 视频"><div class="row"><span class="name">Bilibili</span><span class="url">bilibili.com</span></div><p>书签里收藏了泰语入门课和每日学习视频。</p><div class="tags"><span class="tag">视频课程</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.dicts.cn" target="_blank" rel="noopener noreferrer" data-search="词根 词缀 词源 记忆 词典"><div class="row"><span class="name">词根词缀词典</span><span class="url">dicts.cn</span></div><p>查词根、词缀和词源，背单词时理解构词比硬记更有效。</p><div class="tags"><span class="tag">词源</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.etymonline.com" target="_blank" rel="noopener noreferrer" data-search="etymonline 词源 在线 英语 单词 起源"><div class="row"><span class="name">Etymonline</span><span class="url">etymonline.com</span></div><p>在线英语词源词典，查单词的起源和语义演变。</p><div class="tags"><span class="tag">词源</span></div></a>
+        <a class="card" href="https://dictionary.reverso.net" target="_blank" rel="noopener noreferrer" data-search="reverso 字典 英语 释义 翻译"><div class="row"><span class="name">Reverso 字典</span><span class="url">reverso.net</span></div><p>英语释义和翻译词典，查习语和固定搭配很方便。</p><div class="tags"><span class="tag">词典</span></div></a>
+        <a class="card" href="https://www.xdf.cn/zhuanti/bd-phonetic-alphabet-card/index.html" target="_blank" rel="noopener noreferrer" data-search="国际音标 英语音标 新东方 音标表"><div class="row"><span class="name">国际音标表</span><span class="url">xdf.cn</span></div><p>新东方整理的国际音标表，查音标和发音口型时用。</p><div class="tags"><span class="tag">音标</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://getyarn.io" target="_blank" rel="noopener noreferrer" data-search="yarn 台词 影视 片段 引语 英语"><div class="row"><span class="name">YARN</span><span class="url">getyarn.io</span></div><p>按台词搜影视片段，学英语时看真实对话场景。</p><div class="tags"><span class="tag">台词</span></div></a>
+        <a class="card" href="https://englishprotips.com" target="_blank" rel="noopener noreferrer" data-search="english pro tips 雅思 task 1 写作"><div class="row"><span class="name">English Pro Tips</span><span class="url">englishprotips.com</span></div><p>雅思写作 Task 1 的入门讲解。</p><div class="tags"><span class="tag">雅思</span></div></a>
+        <a class="card" href="https://edu.52it.de" target="_blank" rel="noopener noreferrer" data-search="学生 免费 资源 优惠 福利"><div class="row"><span class="name">学生免费资源</span><span class="url">edu.52it.de</span></div><p>整理学生专属的免费资源和优惠福利。</p><div class="tags"><span class="tag">学生福利</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.eol.cn" target="_blank" rel="noopener noreferrer" data-search="日常 英语 口语 表达 走正步"><div class="row"><span class="name">日常英语口语</span><span class="url">eol.cn</span></div><p>教育在线上的日常英语口语文章，讲表达怎么用。</p><div class="tags"><span class="tag">口语</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.interpreting.hku.hk/glossary/" target="_blank" rel="noopener noreferrer" data-search="中英 双语 时事 词汇 术语 口译"><div class="row"><span class="name">中英双语时事词汇</span><span class="url">interpreting.hku.hk</span></div><p>港大整理的时式中英双语词汇表，查新闻术语时很好用。</p><div class="tags"><span class="tag">术语</span></div></a>
+        <a class="card" href="https://www.usalearns.org" target="_blank" rel="noopener noreferrer" data-search="usa learns 英语 学习 注册 课程"><div class="row"><span class="name">USA Learns</span><span class="url">usalearns.org</span></div><p>美国官方支持的免费英语学习站，注册后可以按课程学。</p><div class="tags"><span class="tag">综合</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://www.futurelearn.com" target="_blank" rel="noopener noreferrer" data-search="futurelearn 免费 在线 课程 英语 学习"><div class="row"><span class="name">FutureLearn</span><span class="url">futurelearn.com</span></div><p>英国在线课程平台，有不少免费课程可以跟学。</p><div class="tags"><span class="tag">课程平台</span></div></a>
+        <a class="card" href="https://www.shmoop.com/study-guides/" target="_blank" rel="noopener noreferrer" data-search="shmoop 学习 指南 文学 历史 考试"><div class="row"><span class="name">Shmoop</span><span class="url">shmoop.com</span></div><p>学习指南站，文学、历史、考试科目都有梳理。</p><div class="tags"><span class="tag">学习指南</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="books">
+      <h2>电子书阅读</h2>
+      <p class="hint">免费电子书、杂志、档案和书单工具</p>
+      <div class="grid">
+        <a class="card" href="https://www.thekono.com/magazine-list" target="_blank" rel="noopener noreferrer" data-search="kono 杂志 电子 阅读 日本 台湾"><div class="row"><span class="name">Kono</span><span class="url">thekono.com</span></div><p>电子杂志阅读平台，日系和台湾杂志资源比较多。</p><div class="tags"><span class="tag">杂志</span></div></a>
+        <a class="card" href="https://zh.welib.org" target="_blank" rel="noopener noreferrer" data-search="welib 书籍 论文 免费 下载"><div class="row"><span class="name">WeLib</span><span class="url">welib.org</span></div><p>号称收录 4300 万本书籍和 9800 万篇论文。</p><div class="tags"><span class="tag">电子书</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.gutenberg.org" target="_blank" rel="noopener noreferrer" data-search="古腾堡 计划 免费 电子书 公版"><div class="row"><span class="name">古腾堡计划</span><span class="url">gutenberg.org</span></div><p>公版电子书的老牌项目，文学经典和英文原著很全。</p><div class="tags"><span class="tag g">免费</span><span class="tag">公版书</span></div></a>
+        <a class="card" href="https://zh.annas-archive.org" target="_blank" rel="noopener noreferrer" data-search="安娜 档案 anna archive 电子书 搜索"><div class="row"><span class="name">安娜的档案</span><span class="url">annas-archive.org</span></div><p>大型电子书搜索引擎，学术书和绝版书都能试着找。</p><div class="tags"><span class="tag">电子书</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://archive.org" target="_blank" rel="noopener noreferrer" data-search="archive.org 公共 档案 互联网 图书馆 音频 视频"><div class="row"><span class="name">公共档案</span><span class="url">archive.org</span></div><p>互联网档案馆，电子书、音频、视频、网页快照都有。</p><div class="tags"><span class="tag g">免费</span><span class="tag">档案</span></div></a>
+        <a class="card" href="https://readzn.com" target="_blank" rel="noopener noreferrer" data-search="阅读指南 免费 电子书 漫画 绘本 小说 学术"><div class="row"><span class="name">阅读指南</span><span class="url">readzn.com</span></div><p>发现免费电子书、漫画绘本、小说和教育学术资源。</p><div class="tags"><span class="tag">电子书</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://rarbg.unblockninja.com" target="_blank" rel="noopener noreferrer" data-search="rarbg 书籍 torrent 下载 电子书"><div class="row"><span class="name">RarBg 书籍</span><span class="url">unblockninja.com</span></div><p>RarBg 的书籍分类镜像，找电子书种子时可以用。</p><div class="tags"><span class="tag">种子</span></div></a>
+        <a class="card" href="https://github.com/0voice/expert_readed_books" target="_blank" rel="noopener noreferrer" data-search="编程 书籍 推荐 计算机 软件 创业 数学"><div class="row"><span class="name">0voice 编程书单</span><span class="url">github.com/0voice</span></div><p>整理过的计算机、软件、创业、数学类书籍推荐清单。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag">编程书单</span></div></a>
+        <a class="card" href="https://www.aqxsw22.com" target="_blank" rel="noopener noreferrer" data-search="爱去 小说 txt 电子书 下载"><div class="row"><span class="name">爱去小说网</span><span class="url">aqxsw22.com</span></div><p>TXT 电子书和小说下载站，中文网文资源比较多。</p><div class="tags"><span class="tag">小说</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://list.honwhy.wang" target="_blank" rel="noopener noreferrer" data-search="书单 配置 工具 阅读 清单"><div class="row"><span class="name">书单配置工具</span><span class="url">honwhy.wang</span></div><p>自己配置书单的工具，把想读的书整理成清单。</p><div class="tags"><span class="tag">书单</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.elrawyy.com" target="_blank" rel="noopener noreferrer" data-search="儿童 短故事 pdf 英语 阅读"><div class="row"><span class="name">儿童短故事</span><span class="url">elrawyy.com</span></div><p>免费下载的儿童短故事 PDF，适合给孩子找英语阅读材料。</p><div class="tags"><span class="tag">儿童</span><span class="tag">PDF</span></div></a>
+        <a class="card" href="https://www.fsyre.com/detail/36567" target="_blank" rel="noopener noreferrer" data-search="言情 小说 倦无期 在线阅读"><div class="row"><span class="name">言情小说</span><span class="url">fsyre.com</span></div><p>《倦無期》等言情小说在线阅读站。</p><div class="tags"><span class="tag">小说</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://tstrs.me" target="_blank" rel="noopener noreferrer" data-search="saltyleo 书架 阅读 书单 博客"><div class="row"><span class="name">SaltyLeo 书架</span><span class="url">tstrs.me</span></div><p>个人书架和阅读记录，能看到一些书单和读书笔记。</p><div class="tags"><span class="tag">书架</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://drive.google.com/drive/folders/0B7OmNithn8yCczMwcnFuZ2ZlaXM" target="_blank" rel="noopener noreferrer" data-search="英文 书籍 google drive 云端 硬盘"><div class="row"><span class="name">英文书籍 Drive</span><span class="url">drive.google.com</span></div><p>Google Drive 上整理的英文书籍文件夹。</p><div class="tags"><span class="tag">英文书</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="video">
+      <h2>影视动漫</h2>
+      <p class="hint">追剧、字幕、动漫、短剧，按需取用</p>
+      <div class="grid">
+        <a class="card" href="https://subhd.tv" target="_blank" rel="noopener noreferrer" data-search="subhd 字幕 下载 美剧 电影"><div class="row"><span class="name">SubHD</span><span class="url">subhd.tv</span></div><p>中文字幕下载站，美剧和电影的字幕资源比较全。</p><div class="tags"><span class="tag">字幕</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://lemonhd.net" target="_blank" rel="noopener noreferrer" data-search="柠檬 lemonhd 影视 资源 下载"><div class="row"><span class="name">柠檬</span><span class="url">lemonhd.net</span></div><p>影视资源站，电影和剧集资源更新比较快。</p><div class="tags"><span class="tag">影视</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://www.olevod.com" target="_blank" rel="noopener noreferrer" data-search="欧乐 影院 海外 华人 在线 视频"><div class="row"><span class="name">欧乐影院</span><span class="url">olevod.com</span></div><p>面向海外华人的在线视频站，海量高清影视。</p><div class="tags"><span class="tag">影视</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://yingmiwo.me" target="_blank" rel="noopener noreferrer" data-search="影迷窝 在线 播放 影视"><div class="row"><span class="name">影迷窝</span><span class="url">yingmiwo.me</span></div><p>在线影视播放站，剧集和电影都能直接看。</p><div class="tags"><span class="tag">影视</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://news.lizer.cc" target="_blank" rel="noopener noreferrer" data-search="数字 生命馆 影视 资源 分享"><div class="row"><span class="name">数字生命馆</span><span class="url">news.lizer.cc</span></div><p>影视资源分享站，适合找一些冷门片和剧集。</p><div class="tags"><span class="tag">影视</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://dm.xifanacg.com" target="_blank" rel="noopener noreferrer" data-search="稀饭 动漫 acg 在线 观看"><div class="row"><span class="name">稀饭动漫</span><span class="url">xifanacg.com</span></div><p>免费动漫在线观看站，资源更新比较勤。</p><div class="tags"><span class="tag">动漫</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.agedm.vip" target="_blank" rel="noopener noreferrer" data-search="age 动漫 在线 播放 番剧"><div class="row"><span class="name">AGE动漫</span><span class="url">agedm.vip</span></div><p>在线动漫播放站，新番和经典番都有收录。</p><div class="tags"><span class="tag">动漫</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.dmvod.com" target="_blank" rel="noopener noreferrer" data-search="大米 影院 海外 华人 免费 高清"><div class="row"><span class="name">大米影院</span><span class="url">dmvod.com</span></div><p>海外华人专属的免费高清中文影院。</p><div class="tags"><span class="tag">影视</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://dongmanhuayuan.myheartsite.com" target="_blank" rel="noopener noreferrer" data-search="动漫花园 资源 镜像 下载 bt"><div class="row"><span class="name">动漫花园</span><span class="url">myheartsite.com</span></div><p>动漫花园镜像站，动漫资源下载和交流的老牌站点。</p><div class="tags"><span class="tag">动漫</span><span class="tag">下载</span></div></a>
+        <a class="card" href="https://www.7th.cc" target="_blank" rel="noopener noreferrer" data-search="第七 影院 电影 电视剧 在线"><div class="row"><span class="name">第七影院</span><span class="url">7th.cc</span></div><p>在线影院，电影和电视剧资源比较全。</p><div class="tags"><span class="tag">影视</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.duanju55.com" target="_blank" rel="noopener noreferrer" data-search="短剧 免费 视频 分享 大全"><div class="row"><span class="name">大中国短剧</span><span class="url">duanju55.com</span></div><p>免费短剧视频分享站，古装和现代短剧都有分类。</p><div class="tags"><span class="tag">短剧</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.mjwu.cc" target="_blank" rel="noopener noreferrer" data-search="美剧屋 美剧 在线 观看"><div class="row"><span class="name">美剧屋</span><span class="url">mjwu.cc</span></div><p>美剧在线观看站，剧集更新跟着播出节奏走。</p><div class="tags"><span class="tag">美剧</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://lightningxvpn.com/blog/cn/free-websites-to-watch-short-drama-cn/" target="_blank" rel="noopener noreferrer" data-search="短剧 网站 推荐 免费 合集"><div class="row"><span class="name">短剧网站合集</span><span class="url">lightningxvpn.com</span></div><p>整理了几个免费看短剧的网站，适合一次找多个入口。</p><div class="tags"><span class="tag">短剧</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.dailymotion.com" target="_blank" rel="noopener noreferrer" data-search="dailymotion 视频 平台 在线 影视"><div class="row"><span class="name">Dailymotion</span><span class="url">dailymotion.com</span></div><p>国际视频平台，能找到一些正片片段和整集资源。</p><div class="tags"><span class="tag">视频</span></div></a>
+        <a class="card" href="https://www.bestvideow.com" target="_blank" rel="noopener noreferrer" data-search="下载器 视频 下载 在线 工具"><div class="row"><span class="name">下载器</span><span class="url">bestvideow.com</span></div><p>在线视频下载工具，处理素材时用来保存视频。</p><div class="tags"><span class="tag">视频下载</span></div></a>
+        <a class="card" href="https://www.zngg.net/tool/detail/FlvPlayer" target="_blank" rel="noopener noreferrer" data-search="flv 在线 播放器 视频"><div class="row"><span class="name">FLV 播放器</span><span class="url">zngg.net</span></div><p>在线 FLV 播放器，遇到浏览器打不开的 FLV 文件可以试试。</p><div class="tags"><span class="tag">播放器</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.cr11ql.com" target="_blank" rel="noopener noreferrer" data-search="短剧 小小影院 在线 播放"><div class="row"><span class="name">小小影院</span><span class="url">cr11ql.com</span></div><p>短剧在线播放站，书签里收藏了具体剧集。</p><div class="tags"><span class="tag">短剧</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.ganjingworld.com" target="_blank" rel="noopener noreferrer" data-search="干净世界 ganjing world 视频 平台"><div class="row"><span class="name">干净世界</span><span class="url">ganjingworld.com</span></div><p>视频平台，书签里收藏了几个才艺和音乐类视频。</p><div class="tags"><span class="tag">视频平台</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="news">
+      <h2>新闻资讯</h2>
+      <p class="hint">看新闻、查问答、逛数据可视化</p>
+      <div class="grid">
+        <a class="card" href="https://www.theguardian.com/international" target="_blank" rel="noopener noreferrer" data-search="卫报 guardian 国际 新闻 英文"><div class="row"><span class="name">卫报</span><span class="url">theguardian.com</span></div><p>英国老牌媒体，国际新闻和深度报道质量不错。</p><div class="tags"><span class="tag">新闻</span><span class="tag">英文</span></div></a>
+        <a class="card" href="https://newsnow.busiyi.world" target="_blank" rel="noopener noreferrer" data-search="newsnow 最热 新闻 聚合 热榜"><div class="row"><span class="name">NewsNow</span><span class="url">newsnow.busiyi.world</span></div><p>新闻热榜聚合站，各平台热点在一个页面里看完。</p><div class="tags"><span class="tag">热榜</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.quora.com" target="_blank" rel="noopener noreferrer" data-search="quora 问答 社区 英文 知识"><div class="row"><span class="name">Quora</span><span class="url">quora.com</span></div><p>英文问答社区，查各种话题的真实讨论和观点。</p><div class="tags"><span class="tag">问答</span><span class="tag">英文</span></div></a>
+        <a class="card" href="https://www.voronoiapp.com" target="_blank" rel="noopener noreferrer" data-search="voronoi visual capitalist 数据 可视化 信息图"><div class="row"><span class="name">Voronoi</span><span class="url">voronoiapp.com</span></div><p>Visual Capitalist 的数据可视化作品站。</p><div class="tags"><span class="tag">数据可视化</span></div></a>
+        <a class="card" href="https://weekly.tw93.fun" target="_blank" rel="noopener noreferrer" data-search="潮流周刊 技术 周刊 前端 设计"><div class="row"><span class="name">潮流周刊</span><span class="url">weekly.tw93.fun</span></div><p>技术潮流周刊，前端、设计、工具类的内容更新比较勤。</p><div class="tags"><span class="tag">周刊</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://scitechdaily.com" target="_blank" rel="noopener noreferrer" data-search="scitechdaily 科技 新闻 科学 文章 北极"><div class="row"><span class="name">SciTechDaily</span><span class="url">scitechdaily.com</span></div><p>科技新闻站，书签里收藏了北极融化相关的科学报道。</p><div class="tags"><span class="tag">科技新闻</span><span class="tag">英文</span></div></a>
+        <a class="card" href="https://ichochy.com" target="_blank" rel="noopener noreferrer" data-search="回忆中的明天 ichochy 博客 图床 教程 资讯"><div class="row"><span class="name">回忆中的明天</span><span class="url">ichochy.com</span></div><p>个人博客，写图床搭建、工具折腾这类内容。</p><div class="tags"><span class="tag">博客</span><span class="tag b">中文界面</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="productivity">
+      <h2>效率笔记</h2>
+      <p class="hint">笔记、白板、日程、转格式、文件处理</p>
+      <div class="grid">
+        <a class="card" href="https://www.notion.com" target="_blank" rel="noopener noreferrer" data-search="notion 笔记 知识 管理 协作"><div class="row"><span class="name">Notion</span><span class="url">notion.com</span></div><p>笔记、知识库、项目管理都能放一起的协作工具。</p><div class="tags"><span class="tag">笔记</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://boardmix.com" target="_blank" rel="noopener noreferrer" data-search="boardmix 思维导图 白板 协作"><div class="row"><span class="name">Boardmix</span><span class="url">boardmix.com</span></div><p>在线白板和思维导图工具，适合梳理思路和团队协作。</p><div class="tags"><span class="tag">白板</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.processon.com" target="_blank" rel="noopener noreferrer" data-search="processon 思维导图 流程图 协作"><div class="row"><span class="name">ProcessOn</span><span class="url">processon.com</span></div><p>思维导图和流程图工具，国内用的人多，模板也丰富。</p><div class="tags"><span class="tag">导图</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.anjhon.top/mac-crontab" target="_blank" rel="noopener noreferrer" data-search="mac 定时任务 crontab 教程"><div class="row"><span class="name">Mac 定时任务</span><span class="url">anjhon.top</span></div><p>Mac 上用 crontab 做定时任务的笔记，配了操作步骤。</p><div class="tags"><span class="tag">教程</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://github.com/bylinxx/MacCalendar" target="_blank" rel="noopener noreferrer" data-search="maccalendar mac 日历 开源 菜单栏 农历"><div class="row"><span class="name">MacCalendar</span><span class="url">github.com/bylinxx</span></div><p>免费的 macOS 菜单栏日历，支持农历、节假日和系统日程。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag">Mac</span></div></a>
+        <a class="card" href="https://123apps.com/tw/" target="_blank" rel="noopener noreferrer" data-search="123apps 在线 音视频 转换 剪辑 压缩"><div class="row"><span class="name">123apps</span><span class="url">123apps.com</span></div><p>在线音视频和文件处理工具合集。</p><div class="tags"><span class="tag">音视频</span></div></a>
+        <a class="card" href="https://tinywow.com" target="_blank" rel="noopener noreferrer" data-search="tinywow 免费 在线工具 pdf 图片 视频 写作"><div class="row"><span class="name">TinyWow</span><span class="url">tinywow.com</span></div><p>免费在线工具集合，PDF、图片、视频、写作都有覆盖。</p><div class="tags"><span class="tag">综合工具</span></div></a>
+        <a class="card" href="https://recorder.suleymandolaev.com" target="_blank" rel="noopener noreferrer" data-search="屏幕录制 免费 录屏 浏览器 教程"><div class="row"><span class="name">免费屏幕录制</span><span class="url">suleymandolaev.com</span></div><p>浏览器里的免费屏幕录制工具，录教程或演示不用装软件。</p><div class="tags"><span class="tag">录屏</span></div></a>
+        <a class="card" href="https://pdf.hk" target="_blank" rel="noopener noreferrer" data-search="pdf hk 合并 拆分 压缩 转换 在线"><div class="row"><span class="name">PDF.hk</span><span class="url">pdf.hk</span></div><p>在线 PDF 工具集，合并、拆分、压缩、转换都能做。</p><div class="tags"><span class="tag">PDF</span></div></a>
+        <a class="card" href="https://quwenjian.cc" target="_blank" rel="noopener noreferrer" data-search="取文件 在线 文件 传输 分享"><div class="row"><span class="name">取文件</span><span class="url">quwenjian.cc</span></div><p>在线文件传输工具，传大文件时比网盘少些限制。</p><div class="tags"><span class="tag">文件传输</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.virustotal.com" target="_blank" rel="noopener noreferrer" data-search="virustotal 病毒 检测 安全 扫描 文件"><div class="row"><span class="name">VirusTotal</span><span class="url">virustotal.com</span></div><p>上传文件或链接查病毒和恶意软件。</p><div class="tags"><span class="tag">安全</span><span class="tag">查毒</span></div></a>
+        <a class="card" href="https://www.it235.com/ai/remotion/install.html" target="_blank" rel="noopener noreferrer" data-search="remotion 文生视频 教程 编程 视频"><div class="row"><span class="name">Remotion 教程</span><span class="url">it235.com</span></div><p>用代码生成视频的 Remotion 实践笔记。</p><div class="tags"><span class="tag">教程</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://thispc.top" target="_blank" rel="noopener noreferrer" data-search="此电脑 工具 导航 网站"><div class="row"><span class="name">此电脑</span><span class="url">thispc.top</span></div><p>书签里收藏的小工具站，作为电脑相关入口使用。</p><div class="tags"><span class="tag">工具</span><span class="tag b">中文界面</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="dev">
+      <h2>开发者</h2>
+      <p class="hint">代码、文档、云服务、状态监控、AI 开发资料</p>
+      <div class="grid">
+        <a class="card" href="https://github.com" target="_blank" rel="noopener noreferrer" data-search="github 代码 仓库 开源 托管 个人主页"><div class="row"><span class="name">GitHub</span><span class="url">github.com</span></div><p>全球最大的代码托管平台，书签里也收藏了几个个人主页。</p><div class="tags"><span class="tag">代码托管</span></div></a>
+        <a class="card" href="https://codepen.io/trending" target="_blank" rel="noopener noreferrer" data-search="codepen 前端 代码 动效 组件 灵感"><div class="row"><span class="name">CodePen</span><span class="url">codepen.io</span></div><p>前端代码演示社区，看别人用 HTML/CSS/JS 做的动效和组件。</p><div class="tags"><span class="tag">前端</span></div></a>
+        <a class="card" href="https://github.com/TwiN/gatus" target="_blank" rel="noopener noreferrer" data-search="gatus 状态页 监控 告警 开源 devops"><div class="row"><span class="name">Gatus</span><span class="url">github.com/TwiN</span></div><p>面向开发者的自动化状态页，支持健康检查、告警和事件记录。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag">监控</span></div></a>
+        <a class="card" href="https://linux.do/t/topic/260904/3" target="_blank" rel="noopener noreferrer" data-search="linux do 社区 技术 论坛 讨论 微信视频号"><div class="row"><span class="name">LINUX DO</span><span class="url">linux.do</span></div><p>技术社区，聊开发、工具、AI 的讨论比较多。</p><div class="tags"><span class="tag">社区</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" data-search="google cloud gcp 虚拟机 云服务"><div class="row"><span class="name">Google Cloud</span><span class="url">console.cloud.google.com</span></div><p>GCP 控制台，建虚拟机、跑云服务都从这里进。</p><div class="tags"><span class="tag">云服务</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://datawhalechina.github.io/happy-llm/" target="_blank" rel="noopener noreferrer" data-search="happy llm 大模型 教程 开源 中文"><div class="row"><span class="name">Happy-LLM</span><span class="url">datawhalechina.github.io</span></div><p>Datawhale 的大模型教程，从原理到实战讲得比较系统。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://adp.xindoo.xyz" target="_blank" rel="noopener noreferrer" data-search="agentic design patterns ai agent 设计模式 中文"><div class="row"><span class="name">Agentic Design Patterns</span><span class="url">adp.xindoo.xyz</span></div><p>《Agentic Design Patterns》中文翻译项目，系统介绍 AI Agent 设计模式。</p><div class="tags"><span class="tag g">免费开源</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://agnes-ai.com/zh-Hans/docs/cid1" target="_blank" rel="noopener noreferrer" data-search="openclaw agnes ai 集成 指南 文档"><div class="row"><span class="name">OpenClaw 集成指南</span><span class="url">agnes-ai.com/docs</span></div><p>Agnes AI 文档里的 OpenClaw 集成指南，接入相关服务时参考。</p><div class="tags"><span class="tag">文档</span><span class="tag b">中文界面</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="nav">
+      <h2>资源导航</h2>
+      <p class="hint">导航站、磁力搜索、网盘资源，找不到东西时先来这里</p>
+      <div class="grid">
+        <a class="card" href="https://fmhy.net/video" target="_blank" rel="noopener noreferrer" data-search="fmhy freemediaheckyeah 影视 动漫 资源 导航"><div class="row"><span class="name">FMHY</span><span class="url">fmhy.net</span></div><p>FreeMediaHeckYeah 的影视动漫资源导航，收录了大量免费站点。</p><div class="tags"><span class="tag">导航</span><span class="tag">影视资源</span></div></a>
+        <a class="card" href="https://wuqianso.top" target="_blank" rel="noopener noreferrer" data-search="吴签 磁力 种子 搜索 下载"><div class="row"><span class="name">吴签磁力</span><span class="url">wuqianso.top</span></div><p>磁力链接和种子搜索站，找资源时用得多。</p><div class="tags"><span class="tag">磁力搜索</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://doc.869hr.uk/AIknowledge/" target="_blank" rel="noopener noreferrer" data-search="ai 知识 资源 下载 教程 学习"><div class="row"><span class="name">AI 知识资源</span><span class="url">869hr.uk</span></div><p>人工智能学习教程和资源下载汇总，入门到进阶都有。</p><div class="tags"><span class="tag">AI 资源</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://msmy.cn" target="_blank" rel="noopener noreferrer" data-search="妙搜云 搜索 网盘 资源"><div class="row"><span class="name">妙搜云</span><span class="url">msmy.cn</span></div><p>网盘资源搜索站，找资料和课程时可以先试试。</p><div class="tags"><span class="tag">网盘搜索</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://so.252035.xyz" target="_blank" rel="noopener noreferrer" data-search="pansou 盘搜 网盘 资源 搜索"><div class="row"><span class="name">盘搜</span><span class="url">so.252035.xyz</span></div><p>网盘资源搜索工具，聚合多个网盘的公开分享。</p><div class="tags"><span class="tag">网盘搜索</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.xuebapan.com" target="_blank" rel="noopener noreferrer" data-search="学霸盘 网盘 资源 学习 下载 商业数据分析"><div class="row"><span class="name">学霸盘</span><span class="url">xuebapan.com</span></div><p>学习类网盘资源下载站，书签里收藏了商业数据分析相关资源。</p><div class="tags"><span class="tag">网盘资源</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.waytoagi.com/zh" target="_blank" rel="noopener noreferrer" data-search="waytoagi 通往 agi 之路 ai 知识库 工具"><div class="row"><span class="name">WaytoAGI</span><span class="url">waytoagi.com</span></div><p>AI 知识库和工具站，整理了大量 AI 学习资料和实用工具。</p><div class="tags"><span class="tag">AI 导航</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://luolitu.cn" target="_blank" rel="noopener noreferrer" data-search="萝莉兔 导航 网 资源 网站 合集"><div class="row"><span class="name">萝莉兔导航</span><span class="url">luolitu.cn</span></div><p>综合资源导航站，各种工具和站点分类整理。</p><div class="tags"><span class="tag">导航</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://so.ataw.top" target="_blank" rel="noopener noreferrer" data-search="ta 搜 ataw 资源 搜索 ai agent 课程"><div class="row"><span class="name">TA 搜</span><span class="url">so.ataw.top</span></div><p>资源搜索站，书签里收藏了 AI Agent 应用实战课程。</p><div class="tags"><span class="tag">资源搜索</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://moxiu.ai6700.com" target="_blank" rel="noopener noreferrer" data-search="墨秀 going global moxiu ai 导航"><div class="row"><span class="name">墨秀 Going Global</span><span class="url">moxiu.ai6700.com</span></div><p>书签里收藏的导航入口，标注了新地址 moxiu.lk666.ai。</p><div class="tags"><span class="tag">导航</span><span class="tag b">中文界面</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="life">
+      <h2>生活旅行</h2>
+      <p class="hint">入境卡、邮箱、求职、域名、软件下载、生活社区</p>
+      <div class="grid">
+        <a class="card" href="https://tdac.immigration.go.th/arrival-card/" target="_blank" rel="noopener noreferrer" data-search="泰国 入境卡 tdac 填写"><div class="row"><span class="name">泰国入境卡</span><span class="url">immigration.go.th</span></div><p>泰国官方电子入境卡填写入口，出发前记得先填。</p><div class="tags"><span class="tag">旅行</span></div></a>
+        <a class="card" href="https://imigresen-online.imi.gov.my/mdac/register" target="_blank" rel="noopener noreferrer" data-search="马来西亚 入境卡 mdac 填写"><div class="row"><span class="name">马来西亚入境卡</span><span class="url">imi.gov.my</span></div><p>马来西亚电子入境卡 MDAC 的官方填写入口。</p><div class="tags"><span class="tag">旅行</span></div></a>
+        <a class="card" href="https://mail.proton.me" target="_blank" rel="noopener noreferrer" data-search="proton mail 邮箱 加密 隐私"><div class="row"><span class="name">Proton Mail</span><span class="url">proton.me</span></div><p>加密邮箱服务，注册一些海外服务时用得上。</p><div class="tags"><span class="tag">邮箱</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://tempmail100.com/zh-cn/" target="_blank" rel="noopener noreferrer" data-search="临时邮箱 tempmail 匿名 一次性"><div class="row"><span class="name">临时邮箱</span><span class="url">tempmail100.com</span></div><p>一次性临时邮箱，注册不重要的服务时收验证码用。</p><div class="tags"><span class="tag">临时邮箱</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.moakt.com" target="_blank" rel="noopener noreferrer" data-search="moakt 临时 邮箱 匿名"><div class="row"><span class="name">Moakt Email</span><span class="url">moakt.com</span></div><p>临时邮箱服务，界面干净，收验证码很方便。</p><div class="tags"><span class="tag">临时邮箱</span></div></a>
+        <a class="card" href="https://tw.howorigami.com" target="_blank" rel="noopener noreferrer" data-search="折纸 大全 手工 教程 图纸"><div class="row"><span class="name">折纸大全</span><span class="url">howorigami.com</span></div><p>手工折纸教程站，图纸和步骤都比较清楚。</p><div class="tags"><span class="tag">手工</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://highbrow-tech.com/jobs/" target="_blank" rel="noopener noreferrer" data-search="求职 职位 招聘 highbrow tech"><div class="row"><span class="name">Highbrow 招聘</span><span class="url">highbrow-tech.com</span></div><p>技术类职位招聘页，看看外面的岗位要求也有帮助。</p><div class="tags"><span class="tag">求职</span></div></a>
+        <a class="card" href="https://www.freedidi.com/20033.html" target="_blank" rel="noopener noreferrer" data-search="免费 域名 cloudflare 注册 教程"><div class="row"><span class="name">免费域名教程</span><span class="url">freedidi.com</span></div><p>注册永久免费域名并托管到 Cloudflare 的教程。</p><div class="tags"><span class="tag">教程</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://dash.domain.digitalplat.org/registration" target="_blank" rel="noopener noreferrer" data-search="digitalplat 域名 免费 注册"><div class="row"><span class="name">DigitalPlat Domains</span><span class="url">digitalplat.org</span></div><p>免费域名注册服务，可以申请后缀比较特别的域名。</p><div class="tags"><span class="tag">域名</span></div></a>
+        <a class="card" href="https://macked.app" target="_blank" rel="noopener noreferrer" data-search="macked mac 软件 破解 下载 parallels"><div class="row"><span class="name">MacKed</span><span class="url">macked.app</span></div><p>Mac 软件下载站，Parallels Desktop 等软件都能找到。</p><div class="tags"><span class="tag">Mac 软件</span></div></a>
+        <a class="card" href="https://www.ruancang.net" target="_blank" rel="noopener noreferrer" data-search="软仓 软件 下载 mac windows"><div class="row"><span class="name">软仓</span><span class="url">ruancang.net</span></div><p>软件下载站，Mac 和 Windows 常用软件都能找到。</p><div class="tags"><span class="tag">软件下载</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.xiaohongshu.com" target="_blank" rel="noopener noreferrer" data-search="小红书 生活 美食 穿搭 攻略 空气炸锅 杏鲍菇"><div class="row"><span class="name">小红书</span><span class="url">xiaohongshu.com</span></div><p>生活方式社区，美食、穿搭、旅行攻略都能搜到，书签里收藏了菜谱笔记。</p><div class="tags"><span class="tag">生活</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://www.tiktok.com" target="_blank" rel="noopener noreferrer" data-search="tiktok 短视频 社交 平台"><div class="row"><span class="name">TikTok</span><span class="url">tiktok.com</span></div><p>短视频平台，刷创意和流行内容时用。</p><div class="tags"><span class="tag">短视频</span></div></a>
+        <a class="card" href="https://115.com" target="_blank" rel="noopener noreferrer" data-search="115 网盘 云存储 科技"><div class="row"><span class="name">115 网盘</span><span class="url">115.com</span></div><p>云存储服务，存文件和备份资料时用得上。</p><div class="tags"><span class="tag">网盘</span><span class="tag b">中文界面</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="workspace">
+      <h2>工作区与云服务</h2>
+      <p class="hint">Citrix 远程工作区入口、云平台、视频上传，按原样保留</p>
+      <div class="grid">
+        <a class="card" href="https://fin01.flyin08.com/logon/LogonPoint/index.html" target="_blank" rel="noopener noreferrer" data-search="citrix gateway fin01 flyin08 登录 工作区"><div class="row"><span class="name">Citrix Gateway · fin01</span><span class="url">fin01.flyin08.com</span></div><p>Citrix 远程工作区登录入口，用于访问内部应用。</p><div class="tags"><span class="tag r">登录页</span><span class="tag">工作区</span></div></a>
+        <a class="card" href="https://itourism.youtripway.com/logon/LogonPoint/index.html" target="_blank" rel="noopener noreferrer" data-search="citrix gateway itourism youtripway 登录 工作区"><div class="row"><span class="name">Citrix Gateway · itourism</span><span class="url">itourism.youtripway.com</span></div><p>另一个 Citrix 登录入口，和上面的工作区属于不同环境。</p><div class="tags"><span class="tag r">登录页</span><span class="tag">工作区</span></div></a>
+        <a class="card" href="https://itourism.youtripway.com/Citrix/test188Web/" target="_blank" rel="noopener noreferrer" data-search="citrix workspace itourism test188 工作区"><div class="row"><span class="name">Citrix Workspace · test188</span><span class="url">itourism.youtripway.com/Citrix</span></div><p>Citrix Workspace 的具体工作区入口。</p><div class="tags"><span class="tag r">登录页</span><span class="tag">工作区</span></div></a>
+        <a class="card" href="https://irental.youtripway.com/logon/LogonPoint/index.html" target="_blank" rel="noopener noreferrer" data-search="citrix irental youtripway 登录 租车 工作区"><div class="row"><span class="name">Citrix Gateway · irental</span><span class="url">irental.youtripway.com</span></div><p>irental 子域的 Citrix 登录入口。</p><div class="tags"><span class="tag r">登录页</span><span class="tag">工作区</span></div></a>
+        <a class="card" href="https://webhook.bringmefaraway.com/logon/LogonPoint/index.html" target="_blank" rel="noopener noreferrer" data-search="citrix webhook bringmefaraway 登录 工作区"><div class="row"><span class="name">Citrix Gateway · webhook</span><span class="url">webhook.bringmefaraway.com</span></div><p>webhook 子域的 Citrix 登录入口。</p><div class="tags"><span class="tag r">登录页</span><span class="tag">工作区</span></div></a>
+        <a class="card" href="https://media.weishi.qq.com" target="_blank" rel="noopener noreferrer" data-search="腾讯微视 视频 上传 媒体 平台"><div class="row"><span class="name">腾讯微视上传</span><span class="url">media.weishi.qq.com</span></div><p>腾讯微视的视频上传入口，发布短视频时从这里进。</p><div class="tags"><span class="tag">视频上传</span><span class="tag b">中文界面</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="personal">
+      <h2>个人与后台</h2>
+      <p class="hint">社交主页、公众号后台、飞书文档、个人博客，按原样保留</p>
+      <div class="grid">
+        <a class="card" href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" data-search="instagram 社交 图片 视频 reels"><div class="row"><span class="name">Instagram</span><span class="url">instagram.com</span></div><p>图片和短视频社交平台，书签里收藏了一个 Reels 链接。</p><div class="tags"><span class="tag">社交</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://discord.com/channels/@me" target="_blank" rel="noopener noreferrer" data-search="discord 社群 聊天 频道 语音"><div class="row"><span class="name">Discord</span><span class="url">discord.com</span></div><p>社群聊天和语音平台，书签里收藏了个人频道入口。</p><div class="tags"><span class="tag">社群</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://tuulikki.tumblr.com" target="_blank" rel="noopener noreferrer" data-search="tumblr 博客 社交 图文"><div class="row"><span class="name">Tumblr</span><span class="url">tuulikki.tumblr.com</span></div><p>轻博客和图文社交平台，书签里收藏了一个具体帖子。</p><div class="tags"><span class="tag">博客</span></div></a>
+        <a class="card" href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" data-search="facebook 社交 平台 meta"><div class="row"><span class="name">Facebook</span><span class="url">facebook.com</span></div><p>社交平台，书签里收藏的是登录/落地页。</p><div class="tags"><span class="tag">社交</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://mp.weixin.qq.com" target="_blank" rel="noopener noreferrer" data-search="微信公众号 后台 发布 文章 管理"><div class="row"><span class="name">微信公众号后台</span><span class="url">mp.weixin.qq.com</span></div><p>公众号文章发布和管理后台，书签里保存了两个后台入口。</p><div class="tags"><span class="tag r">后台</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://lcnntmqiipnh.feishu.cn" target="_blank" rel="noopener noreferrer" data-search="飞书 文档 wiki 知识库 协作"><div class="row"><span class="name">飞书文档</span><span class="url">feishu.cn</span></div><p>飞书知识库和文档，书签里保存了几个具体 wiki 页面。</p><div class="tags"><span class="tag r">后台</span><span class="tag b">中文界面</span></div></a>
+        <a class="card" href="https://liuyib.github.io" target="_blank" rel="noopener noreferrer" data-search="个人 博客 github pages 浏览量"><div class="row"><span class="name">个人博客</span><span class="url">liuyib.github.io</span></div><p>GitHub Pages 上的个人博客，书签里标注为「浏览量」。</p><div class="tags"><span class="tag">博客</span></div></a>
+      </div>
+    </section>
+
+    <section class="group" id="inspiration">
+      <h2>灵感参考</h2>
+      <p class="hint">不知道怎么做的时候，先看看别人怎么做</p>
+      <div class="grid">
+        <a class="card" href="https://www.behance.net" target="_blank" rel="noopener noreferrer" data-search="behance 作品集 灵感 平面 ui 3d 设计"><div class="row"><span class="name">Behance</span><span class="url">behance.net</span></div><p>设计师作品集平台，平面、UI、3D、数字艺术全覆盖。</p><div class="tags"><span class="tag">灵感参考</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://mobbin.com" target="_blank" rel="noopener noreferrer" data-search="mobbin app 界面 交互 流程 参考 ui"><div class="row"><span class="name">Mobbin</span><span class="url">mobbin.com</span></div><p>真实 App 界面库，研究引导流程和交互模式时特别高效。</p><div class="tags"><span class="tag">灵感参考</span><span class="tag">需注册</span></div></a>
+        <a class="card" href="https://www.radium.design" target="_blank" rel="noopener noreferrer" data-search="radium design b2b 创意机构 品牌 网页 案例"><div class="row"><span class="name">Radium Design</span><span class="url">radium.design</span></div><p>B2B 创意机构官网，品牌视觉和网页设计案例质量不错。</p><div class="tags"><span class="tag">品牌设计</span></div></a>
+      </div>
+    </section>
+
+    <p class="empty" id="empty">没有匹配的站点，换个关键词试试。</p>
+  </main>
+</div>
+
+<div class="toast" id="toast">
+  <span>已删除</span>
+  <button type="button" id="undo-btn">撤销</button>
+</div>
+
+<footer><div class="wrap">
+  收藏和删除状态保存在浏览器本地（localStorage），换浏览器或清除数据后会重置。删除的卡片 5 秒内可撤销。<br>
+  登录页和后台入口按原样保留，不保证长期可访问。影视、网盘类站点资源来源复杂，请注意版权和使用规范。
+</div></footer>
+
+<script>
+(function(){
+  var STORAGE_KEY = 'nav_state_v1';
+  var state = { starred: [], deleted: [] };
+  var starredSection = document.getElementById('starred');
+  var starredGrid = document.getElementById('starred-grid');
+  var q = document.getElementById('q');
+  var empty = document.getElementById('empty');
+  var toast = document.getElementById('toast');
+  var toastTimer = null;
+  var lastDeleted = null;
+
+  // ---------- 状态存取 ----------
+  function loadState(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw){
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.starred)) state.starred = s.starred;
+        if (s && Array.isArray(s.deleted)) state.deleted = s.deleted;
+      }
+    } catch(e){}
+  }
+  function saveState(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  // ---------- 查找卡片 ----------
+  function findByHref(href){
+    var all = document.querySelectorAll('a.card');
+    var result = [];
+    for (var i = 0; i < all.length; i++){
+      if (all[i].getAttribute('href') === href) result.push(all[i]);
+    }
+    return result;
+  }
+  function getOriginal(href){
+    var cards = findByHref(href);
+    for (var i = 0; i < cards.length; i++){
+      if (!cards[i].classList.contains('is-mirror')) return cards[i];
+    }
+    return null;
+  }
+  function getMirror(href){
+    var cards = findByHref(href);
+    for (var i = 0; i < cards.length; i++){
+      if (cards[i].classList.contains('is-mirror')) return cards[i];
+    }
+    return null;
+  }
+
+  // ---------- 给卡片加按钮 ----------
+  function addActions(card){
+    if (card.querySelector('.card-actions')) return;
+    var div = document.createElement('div');
+    div.className = 'card-actions';
+
+    var star = document.createElement('button');
+    star.type = 'button';
+    star.className = 'act-star';
+    star.setAttribute('aria-label', '收藏');
+    star.title = '收藏';
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'act-del';
+    del.setAttribute('aria-label', '删除');
+    del.title = '删除';
+    del.textContent = '×';
+
+    div.appendChild(star);
+    div.appendChild(del);
+    card.appendChild(div);
+  }
+
+  // ---------- 绑定事件 ----------
+  function bindCard(card){
+    if (card.dataset.bound === '1') return;
+    card.dataset.bound = '1';
+
+    var actions = card.querySelector('.card-actions');
+    if (!actions) return;
+
+    // 阻止按钮点击冒泡到 <a>
+    actions.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    var starBtn = actions.querySelector('.act-star');
+    var delBtn = actions.querySelector('.act-del');
+
+    if (starBtn){
+      starBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        toggleStar(card.getAttribute('href'));
+      });
+    }
+    if (delBtn){
+      delBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        deleteCard(card.getAttribute('href'));
+      });
+    }
+  }
+
+  // ---------- 星标 ----------
+  function toggleStar(href){
+    var original = getOriginal(href);
+    if (!original) return;
+
+    var isStarred = original.classList.contains('is-starred');
+
+    if (isStarred){
+      original.classList.remove('is-starred');
+      state.starred = state.starred.filter(function(h){ return h !== href; });
+      var mirror = getMirror(href);
+      if (mirror) mirror.remove();
+    } else {
+      original.classList.add('is-starred');
+      state.starred.unshift(href);
+      createMirror(original);
+    }
+
+    saveState();
+    updateStarredSection();
+  }
+
+  function createMirror(original){
+    var href = original.getAttribute('href');
+    if (getMirror(href)) return;
+
+    var clone = original.cloneNode(true);
+    clone.classList.add('is-mirror');
+    clone.classList.add('is-starred');
+    clone.removeAttribute('data-bound');
+
+    var oldActions = clone.querySelector('.card-actions');
+    if (oldActions) oldActions.remove();
+
+    addActions(clone);
+    starredGrid.appendChild(clone);
+    bindCard(clone);
+  }
+
+  // ---------- 删除 ----------
+  function deleteCard(href){
+    var cards = findByHref(href);
+    if (cards.length === 0) return;
+
+    var original = getOriginal(href) || cards[0];
+
+    lastDeleted = {
+      href: href,
+      card: original,
+      parent: original.parentNode,
+      next: original.nextSibling,
+      wasStarred: original.classList.contains('is-starred')
+    };
+
+    // 移除所有副本
+    cards.forEach(function(c){ c.remove(); });
+
+    // 从星标中移除
+    state.starred = state.starred.filter(function(h){ return h !== href; });
+    // 记入删除
+    if (state.deleted.indexOf(href) === -1) state.deleted.push(href);
+
+    saveState();
+    updateStarredSection();
+    checkGroupEmpty();
+    showToast();
+  }
+
+  function undoDelete(){
+    if (!lastDeleted) return;
+    var d = lastDeleted;
+    lastDeleted = null;
+
+    state.deleted = state.deleted.filter(function(h){ return h !== d.href; });
+
+    // 恢复节点
+    if (d.next && d.next.parentNode === d.parent){
+      d.parent.insertBefore(d.card, d.next);
+    } else {
+      d.parent.appendChild(d.card);
+    }
+
+    // 恢复星标
+    if (d.wasStarred){
+      d.card.classList.add('is-starred');
+      state.starred.unshift(d.href);
+      createMirror(d.card);
+    }
+
+    saveState();
+    updateStarredSection();
+    checkGroupEmpty();
+    hideToast();
+  }
+
+  // ---------- Toast ----------
+  function showToast(){
+    toast.hidden = false;
+    requestAnimationFrame(function(){ toast.classList.add('show'); });
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 5000);
+  }
+  function hideToast(){
+    toast.classList.remove('show');
+    clearTimeout(toastTimer);
+    setTimeout(function(){ toast.hidden = true; }, 300);
+    lastDeleted = null;
+  }
+
+  // ---------- 更新已收藏区 ----------
+  function updateStarredSection(){
+    var count = starredGrid.querySelectorAll('a.card').length;
+    starredSection.hidden = count === 0;
+    document.body.classList.toggle('has-starred', count > 0);
+  }
+
+  // ---------- 空分组检查 ----------
+  function checkGroupEmpty(){
+    document.querySelectorAll('.group').forEach(function(g){
+      if (g.id === 'starred') return;
+      var grid = g.querySelector('.grid');
+      if (!grid) return;
+      var count = grid.querySelectorAll('a.card').length;
+      g.classList.toggle('empty-group', count === 0);
+    });
+  }
+
+  // ---------- 搜索 ----------
+  q.addEventListener('input', function(){
+    var kw = q.value.trim().toLowerCase();
+
+    if (!kw){
+      document.querySelectorAll('.group').forEach(function(g){ g.hidden = false; });
+      document.querySelectorAll('a.card').forEach(function(c){ c.hidden = false; });
+      checkGroupEmpty();
+      updateStarredSection();
+      empty.style.display = 'none';
+      return;
+    }
+
+    var total = 0;
+    document.querySelectorAll('.group').forEach(function(g){
+      var visible = 0;
+      g.querySelectorAll('a.card').forEach(function(c){
+        var hit = (c.dataset.search + ' ' + c.textContent).toLowerCase().indexOf(kw) > -1;
+        c.hidden = !hit;
+        if (hit) visible++;
+      });
+      g.hidden = visible === 0;
+      total += visible;
+    });
+    empty.style.display = total === 0 ? 'block' : 'none';
+  });
+
+  // ---------- 初始化 ----------
+  function init(){
+    loadState();
+
+    // 给所有卡片加按钮并绑定
+    document.querySelectorAll('a.card').forEach(function(c){
+      addActions(c);
+      bindCard(c);
+    });
+
+    // 恢复删除
+    state.deleted.forEach(function(href){
+      findByHref(href).forEach(function(c){ c.remove(); });
+    });
+
+    // 恢复星标
+    state.starred.forEach(function(href){
+      var original = getOriginal(href);
+      if (original){
+        original.classList.add('is-starred');
+        createMirror(original);
+      }
+    });
+
+    checkGroupEmpty();
+    updateStarredSection();
+
+    document.getElementById('undo-btn').addEventListener('click', undoDelete);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
